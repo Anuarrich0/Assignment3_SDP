@@ -2,11 +2,6 @@ package cafe.legacy;
 
 import java.nio.charset.StandardCharsets;
 
-/**
- * Standalone simulated legacy API. It does not know OrderOutput.
- * Protocol: UTF-8 bytes, 1..256 bytes, 1..3 copies.
- * Status: 0 success, -1 no paper, -2 offline, -3 invalid data.
- */
 public class LegacyPrinter {
     public static final int OK = 0;
     public static final int NO_PAPER = -1;

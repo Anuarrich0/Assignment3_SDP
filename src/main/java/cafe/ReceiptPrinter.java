@@ -1,6 +1,5 @@
 package cafe;
 
-/** Native implementor: a simulated modern text printer. */
 public final class ReceiptPrinter implements OrderOutput {
     private int printedTickets;
 

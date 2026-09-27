@@ -3,7 +3,6 @@ package cafe;
 import java.util.Map;
 import java.util.function.Function;
 
-/** Choose output from the request's preparation station at runtime. */
 public final class OrderService {
     private final Map<String, OrderOutput> outputs;
     private final Map<String, Function<OrderOutput, CafeOrder>> orderTypes;

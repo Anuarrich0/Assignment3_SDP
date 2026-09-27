@@ -1,6 +1,5 @@
 package cafe;
 
-/** Data entered by the customer; station determines routing. */
 public record OrderDetails(String station, String items, int tableNumber) {
     public OrderDetails {
         if (station == null || station.isBlank() || items == null || items.isBlank()) {

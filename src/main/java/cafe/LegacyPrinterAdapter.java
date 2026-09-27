@@ -4,7 +4,6 @@ import cafe.legacy.LegacyPrinter;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
-/** Object Adapter: converts text, copy count, statuses and exceptions. */
 public final class LegacyPrinterAdapter implements OrderOutput {
     private final LegacyPrinter printer;
     private int sentTickets;
@@ -20,7 +19,6 @@ public final class LegacyPrinterAdapter implements OrderOutput {
         try {
             status = printer.printBytes(ticket.getBytes(StandardCharsets.UTF_8), 1);
         } catch (RuntimeException failure) {
-            // Never expose legacy messages, types or causes to the caller.
             throw new OutputException(OutputException.Reason.DEVICE_FAILURE,
                     "Could not deliver the order ticket");
         }

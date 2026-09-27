@@ -1,6 +1,5 @@
 package cafe;
 
-/** Refined Abstraction: serve the order at a numbered table. */
 public final class DineInOrder extends CafeOrder {
     public DineInOrder(OrderOutput output) { super(output); }
 

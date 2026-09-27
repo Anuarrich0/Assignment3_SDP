@@ -1,6 +1,5 @@
 package cafe;
 
-/** Refined Abstraction: pack the order instead of serving at a table. */
 public final class TakeawayOrder extends CafeOrder {
     public TakeawayOrder(OrderOutput output) { super(output); }
 

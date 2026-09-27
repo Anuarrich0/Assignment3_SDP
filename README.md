@@ -1,68 +1,70 @@
-# Museum specimen accession — Adapter and Bridge
+# Cafe orders - Bridge and Adapter
 
-Java 17+ / Maven 3.9+. Assignment 3: two intake policies and three catalog backends
-in one system. Required complexity module: **dynamic implementor selection**.
+Java 17+ and Maven 3.9+. One application combines order types and output devices.
+Required complexity module: **dynamic implementor selection**.
 
-## Build and test
+## Build and tests
 
 ```powershell
 mvn clean verify
 ```
 
-This single command compiles the source, runs JUnit 5 tests, and builds an executable JAR.
-The first build needs internet access for Maven dependencies. Tests alone: `mvn test`.
+Compiles the project, runs JUnit 5 tests and produces an executable JAR.
+Tests only: `mvn test`. The first build needs internet for dependencies.
 
 ## Run
 
-```powershell
-java -jar target/museum-accession-1.0.0.jar standard botany B-12 "Dried fern"
-java -jar target/museum-accession-1.0.0.jar quarantine expedition E-8 "Moss sample"
-java -jar target/museum-accession-1.0.0.jar quarantine archive 42 "Historic herbarium"
-```
+In IntelliJ, open this Maven project and run **cafe.Main** with empty Program arguments.
+The console asks for the order type, preparation station, table (dine-in only) and items.
+For example: `takeaway`, `bakery`, `Croissant`.
 
-Expected receipts: `CENTRAL-1`, `FIELD-1`, `ARCHIVE-1`.
-Input order: workflow, collection, inventory ID, label.
-The collection determines the backend at runtime; the caller never chooses a Java class.
-Both workflows work with all three collections. The quarantine period (30 days) is an
-illustrative policy, not a conservation recommendation. Storage lasts for one process only.
-
-Failure example:
+Terminal interactive mode:
 
 ```powershell
-java -jar target/museum-accession-1.0.0.jar standard archive abc "Fern"
+java -jar target/cafe-orders-1.0.0.jar
 ```
 
-This reports `INVALID_INPUT` and exits with code 1. An unknown collection/workflow also fails.
-Duplicate detection and an offline legacy ledger are demonstrated in the tests.
+Optional four-argument mode (type, station, table, items):
 
-## Pattern roles
+```powershell
+java -jar target/cafe-orders-1.0.0.jar dine-in kitchen 7 "Burger and tea"
+java -jar target/cafe-orders-1.0.0.jar takeaway bar 0 "Coffee"
+java -jar target/cafe-orders-1.0.0.jar takeaway bakery 0 "Croissant"
+```
+
+Dine-in needs a positive table number. Takeaway uses 0 (no table).
+The station selects the output: kitchen -> screen; bar -> modern printer;
+bakery -> legacy printer through Adapter. Either order type works with any station.
+A ticket includes either table/serving instructions or takeaway packing instructions.
+Output devices are console simulations, not real hardware or network services.
+Receipt counters and the screen queue last only for the current process.
+
+## Design
 
 | Role | Class |
 |---|---|
-| Abstraction | `Accession` |
-| Refined Abstractions | `StandardAccession`, `QuarantineAccession` |
-| Implementor / Adapter Target | `SpecimenCatalog` |
-| Native implementations | `CentralCatalog`, `FieldJournal` |
-| Third implementation / Object Adapter | `LegacyCatalogAdapter` |
-| Adaptee | `legacy.LegacyLedger` |
-| Runtime routing | `IntakeService` |
-| Startup wiring and CLI | `Main` |
+| Abstraction | CafeOrder |
+| Refined Abstractions | DineInOrder, TakeawayOrder |
+| Implementor / Target | OrderOutput |
+| Native implementors | KitchenScreen, ReceiptPrinter |
+| Adapter / third implementor | LegacyPrinterAdapter |
+| Adaptee | legacy.LegacyPrinter |
+| Runtime routing | OrderService |
 
-The old API is a self-contained **simulated legacy component**, not a third-party library.
-Its numeric identifiers, UTF-8 byte arrays, reversed arguments, integer receipts and error
-codes require real conversions. The adapter does not modify the ledger.
+The independent legacy API accepts UTF-8 bytes and a copy count, returning integer
+statuses. The adapter converts text, requests one copy, translates results and all
+operational failures into the common contract. It does not modify the adaptee.
 
 ## Submission documents
 
-- [UML image](docs/uml.png) — final production structure.
-- [Design rationale](docs/design-rationale.md) — short English submission document.
+- [UML](docs/uml.png)
+- [Design rationale](docs/design-rationale.md)
 
-![UML class diagram](docs/uml.png)
+![Class diagram](docs/uml.png)
 
-## Test coverage
+## Tests
 
-- `AccessionTest`: recording stubs check both policies, arguments, call counts and failures.
-- `LegacyCatalogAdapterTest`: conversion, every documented error code, unknown statuses,
-  unexpected exceptions, numeric ID boundaries, UTF-8 byte limit and offline state.
-- `IntakeServiceTest`: input routing and extension on both axes without changing existing classes.
-- `CatalogIntegrationTest`: common contract, duplicates and all six real combinations.
+- CafeOrderTest: recording stubs check formatting, exactly-once delegation and failures.
+- LegacyPrinterAdapterTest: UTF-8, copy count, all statuses, exceptions and byte limits.
+- OrderServiceTest: runtime selection and independent extension of both axes.
+- OutputIntegrationTest: shared contract and all six order/output combinations.

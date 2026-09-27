@@ -1,61 +1,59 @@
-# Museum specimen accession
+# Cafe order dispatch
 
 ## Problem and independent variation
 
-A museum accepts specimens into botanical, expedition and historical collections.
-Already inspected arrivals use standard accession; uninspected arrivals receive a
-30-day quarantine marker. This duration is an illustrative software policy.
-Catalog infrastructure varies separately: a central indexed catalog, a sequential
-field journal, and an old numeric ledger. Either intake policy must work with any
-catalog. Combining policies and catalogs through subclasses would require six
-combinations for two policies and three catalogs, and more as either dimension grows.
+A cafe prepares dine-in and takeaway orders at its kitchen, bar and bakery.
+Dine-in tickets carry a table number and serving instructions. Takeaway tickets
+carry packing instructions and no table. Separately, each station may use a kitchen
+screen, a modern text printer or a legacy byte-oriented printer. Both order types
+must work with every output. Encoding each pair as a subclass would duplicate order
+rules across six combinations; adding a new output would multiply that duplication.
 
-## Bridge and Adapter together
+## Bridge and Adapter in one request
 
-`Accession` holds a `SpecimenCatalog`. `StandardAccession` and `QuarantineAccession`
-choose the hold duration and delegate registration. `CentralCatalog` and `FieldJournal`
-implement the contract directly. `LegacyCatalogAdapter` is its third implementation
-and wraps `LegacyLedger`. The abstraction hierarchy imports no legacy types or constants.
+CafeOrder holds an OrderOutput. DineInOrder and TakeawayOrder build the appropriate
+ticket and delegate delivery. KitchenScreen and ReceiptPrinter implement OrderOutput
+directly. LegacyPrinterAdapter is the third implementor; it wraps LegacyPrinter.
+The abstraction hierarchy never imports legacy classes or status constants.
 
-Bridge alone would separate policies and catalogs, but would not translate the old
-ledger's incompatible protocol. Adapter alone would provide a common catalog interface,
-but would not structure the independent policy hierarchy. Here the adapter participates
-inside the bridge; the two patterns handle the same registration request.
+Bridge alone separates ticket rules from delivery but cannot speak the old printer's
+protocol. Adapter alone makes that printer usable but does not separate the two
+independently varying order policies from output implementations. In this design,
+one order passes through the bridge and, when selected, through the adapter.
 
-## Genuine incompatibility and error contract
+## Genuine incompatibility and failure translation
 
-The standalone simulated legacy component was frozen before adapter integration; it
-is not claimed to be an external vendor library. The target accepts
-`register(Specimen, int)` and returns a string receipt, with `CatalogException` for
-operational failures. The ledger accepts `accession(int, byte[], long)` and returns
-an integer receipt or a negative status. The adapter extracts the ID, validates its
-canonical numeric representation, encodes the label as UTF-8, reorders arguments,
-and constructs a receipt. It rejects IDs such as `007` instead of merging them with `7`.
-A ledger is assigned to one collection, which the adapter enforces.
+LegacyPrinter is a standalone simulated legacy component, not a claimed vendor SDK.
+Its source has no dependency on OrderOutput and is not altered to fit that interface.
+The target send(String) returns a delivery receipt and throws OutputException.
+The native printBytes(byte[], int) requires UTF-8 encoded data plus a copy count and
+returns integer statuses. The adapter encodes text, supplies exactly one copy,
+and turns successful status 0 into a receipt. Status -1 becomes PAPER_OUT, -2 OFFLINE,
+and -3 INVALID_ORDER. Any unknown status or unexpected runtime exception becomes
+DEVICE_FAILURE. No legacy type, raw status, cause or diagnostic message leaks out.
 
-Statuses -1, -2 and -3 become `DUPLICATE`, `INVALID_INPUT` and `UNAVAILABLE`.
-Zero, unknown negative statuses and unexpected runtime exceptions become `INTERNAL`.
-No raw status or legacy exception message/cause crosses the boundary. Backend-specific
-input limits are permitted by the common contract and reported as `INVALID_INPUT`.
+The legacy device supports 1..256 bytes and 1..3 copies. The common contract permits
+backend-specific input limits reported as INVALID_ORDER. The adapter does not truncate
+orders or silently change them. Only successful sends advance its receipt counter.
 
-## Required complexity module and Open/Closed Principle
+## Complexity module and Open/Closed Principle
 
-Chosen module: **dynamic implementor selection**. `IntakeService` looks up a catalog
-using the incoming specimen's collection; `Main` registers available catalogs at
-startup but never selects a fixed backend for a request. The same executable accepts
-botany, expedition or archive input, including the adapted backend.
+Chosen module: **dynamic implementor selection**. OrderService selects an output
+using the incoming preparation station. Main registers available objects at startup;
+it does not hard-code a device for an individual request. Interactive and argument
+input both go through the same selection, including the adapted implementation.
+The other module, two-way adaptation, is not used.
 
-A new policy subclasses `Accession`; a new backend implements `SpecimenCatalog`.
-Both are supplied through constructor-injected registries. Existing policies,
-catalogs and routing logic need no edits. Registration in an application's composition
-root is configuration, not a modification to the pattern logic. A test introduces
-a seven-day research policy and another backend using new wiring, without editing any
-existing production class. The module is one-way adaptation, not a two-way adapter.
+A new order type subclasses CafeOrder; a new output implements OrderOutput. New
+registries are supplied through the service constructor without changing existing
+order, output or service classes. Composition-root registration remains necessary
+to expose an extension in an executable. A test supplies a new delivery-order
+subclass and another output using new wiring while leaving production classes unchanged.
 
 ## Validation and limitation
 
-JUnit 5 tests use recording stubs for delegation and a stub ledger for each failure
-path, plus integration tests for all six combinations. UML names and relationships
-match production code. One limitation is process-local, single-threaded storage:
-entries disappear when the CLI exits. Durable, concurrent storage would require new
-backend implementations; it is outside this pattern-focused prototype.
+JUnit 5 tests use recording outputs and a stub legacy printer to check delegation,
+formatting, failures and conversion. Integration tests cover all six combinations.
+The UML matches production classes. One limitation is that all outputs simulate
+hardware in the console: no durable queue, real printer acknowledgement or retry
+mechanism exists. Counters reset when the application exits.

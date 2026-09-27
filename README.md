@@ -54,10 +54,8 @@ codes require real conversions. The adapter does not modify the ledger.
 
 ## Submission documents
 
-- [UML image](docs/uml.png) — final production structure; [editable PlantUML](docs/uml.puml).
+- [UML image](docs/uml.png) — final production structure.
 - [Design rationale](docs/design-rationale.md) — short English submission document.
-- [Пошаговое объяснение задания и кода](docs/EXPLANATION_RU.md) — Russian study guide and defense questions.
-- [Legacy component contract](docs/legacy-contract.md).
 
 ![UML class diagram](docs/uml.png)
 
@@ -68,8 +66,3 @@ codes require real conversions. The adapter does not modify the ledger.
   unexpected exceptions, numeric ID boundaries, UTF-8 byte limit and offline state.
 - `IntakeServiceTest`: input routing and extension on both axes without changing existing classes.
 - `CatalogIntegrationTest`: common contract, duplicates and all six real combinations.
-
-Source material: Assignment 3 handout; Lecture 3 (Adapter), slides 7–8, 10, 13;
-Lecture 4 (Bridge), slides 6–9, 11–13. The domain is separate from the local previous
-assignments (Travel Package Builder and Game World Kit). Unseen classroom examples and
-other students' domains still need to be checked by the student before submission.

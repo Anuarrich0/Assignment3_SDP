@@ -8,19 +8,13 @@ public final class Main {
     private Main() { }
 
     public static void main(String[] args) {
-        OrderService service = new OrderService(
-                Map.of("kitchen", new KitchenScreen(), "bar", new ReceiptPrinter(),
-                        "bakery", new LegacyPrinterAdapter(new LegacyPrinter(true, true))),
-                Map.of("dine-in", DineInOrder::new, "takeaway", TakeawayOrder::new));
         try {
-            String[] input = args.length == 0 ? readInput() : args;
-            if (input.length != 4) {
-                throw new IllegalArgumentException(
-                        "Use: <dine-in|takeaway> <kitchen|bar|bakery> <table or 0> <items>");
-            }
-            OrderDetails details = new OrderDetails(input[1], input[3],
-                    Integer.parseInt(input[2]));
-            String receipt = service.place(input[0], details);
+            OrderService service = createService();
+            String[] input = readInput(args);
+            String type = input[0];
+            OrderDetails details = parseOrderDetails(input);
+
+            String receipt = service.place(type, details);
             System.out.println("Sent: " + receipt);
         } catch (OutputException failure) {
             System.err.println(failure.reason() + ": " + failure.getMessage());
@@ -29,6 +23,35 @@ public final class Main {
             System.err.println("INVALID_INPUT: " + failure.getMessage());
             System.exit(2);
         }
+    }
+
+    private static OrderService createService() {
+        Map<String, OrderOutput> outputs = Map.of(
+                "kitchen", new KitchenScreen(),
+                "bar", new ReceiptPrinter(),
+                "bakery", new LegacyPrinterAdapter(new LegacyPrinter(true, true)));
+
+        return new OrderService(outputs, Map.of(
+                "dine-in", DineInOrder::new,
+                "takeaway", TakeawayOrder::new));
+    }
+
+    private static String[] readInput(String[] args) {
+        if (args.length == 0) {
+            return readInput();
+        }
+        if (args.length != 4) {
+            throw new IllegalArgumentException(
+                    "Use: <dine-in|takeaway> <kitchen|bar|bakery> <table or 0> <items>");
+        }
+        return args;
+    }
+
+    private static OrderDetails parseOrderDetails(String[] input) {
+        String station = input[1];
+        int table = Integer.parseInt(input[2]);
+        String items = input[3];
+        return new OrderDetails(station, items, table);
     }
 
     private static String[] readInput() {

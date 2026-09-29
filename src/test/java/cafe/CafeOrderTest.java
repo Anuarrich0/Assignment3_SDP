@@ -24,7 +24,8 @@ class CafeOrderTest {
 
     @Test void takeawayAddsPackingInstructions() throws Exception {
         RecordingOutput stub = new RecordingOutput();
-        assertEquals("receipt", new TakeawayOrder(stub).place(new OrderDetails("bar", "Coffee", 0)));
+        String result = new TakeawayOrder(stub).place(new OrderDetails("bar", "Coffee", 0));
+        assertEquals("receipt", result);
         assertEquals("TAKEAWAY\nCoffee\nPack in takeaway containers.", stub.ticket);
         assertEquals(1, stub.calls);
     }

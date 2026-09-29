@@ -1,4 +1,4 @@
 -------------------------------------------------------------------------------
 Test set: cafe.LegacyPrinterAdapterTest
 -------------------------------------------------------------------------------
-Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.106 s -- in cafe.LegacyPrinterAdapterTest
+Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.209 s -- in cafe.LegacyPrinterAdapterTest

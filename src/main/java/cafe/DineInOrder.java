@@ -9,6 +9,7 @@ public final class DineInOrder extends CafeOrder {
             throw new OutputException(OutputException.Reason.INVALID_ORDER,
                     "Dine-in orders need a positive table number");
         }
+        if(details.tableNumber() > 80){}
         String ticket = "TABLE " + details.tableNumber() + "\n"
                 + details.items() + "\nServe on plates.";
         return output.send(ticket);
